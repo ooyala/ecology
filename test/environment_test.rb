@@ -5,14 +5,12 @@ class EnvironmentTest < Scope::TestCase
     Ecology.reset
   end
 
-  context "with environments in your ecology" do
+  context "with environment-from in your ecology" do
     setup do
       set_up_ecology <<ECOLOGY_CONTENTS
 {
   "application": "SomeApp",
-  "environment": {
-    "vars": ["SOME_ENV_VAR", "VAR2"]
-  }
+  "environment-from": ["SOME_ENV_VAR", "VAR2"]
 }
 ECOLOGY_CONTENTS
 
@@ -41,6 +39,40 @@ ECOLOGY_CONTENTS
       ENV["VAR2"] = "daily-staging"
       Ecology.read
       assert_equal "theatrical staging", Ecology.environment
+    end
+  end
+
+  context "with an environment override in your ecology" do
+    setup do
+      set_up_ecology <<ECOLOGY_CONTENTS
+{
+  "application": "SomeApp",
+  "environment": "not really staging",
+  "environment-from": "SOME_ENV_VAR"
+}
+ECOLOGY_CONTENTS
+    end
+
+    should "use the environment override" do
+      Ecology.read
+      assert_equal "not really staging", Ecology.environment
+    end
+  end
+
+  context "with a single environment-from in your ecology" do
+    setup do
+      set_up_ecology <<ECOLOGY_CONTENTS
+{
+  "application": "SomeApp",
+  "environment-from": "SOME_ENV_VAR"
+}
+ECOLOGY_CONTENTS
+    end
+
+    should "use the environment override" do
+      ENV['SOME_ENV_VAR'] = "bob's pants"
+      Ecology.read
+      assert_equal "bob's pants", Ecology.environment
     end
   end
 end

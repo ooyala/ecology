@@ -36,10 +36,13 @@ module Ecology
         if @data
           @application = @data["application"]
 
-          if @data["environment"]
-            @environment = @data["environment"]["override"]
-            if !@environment && @data["environment"]["vars"]
-              @environment ||= @data["environment"]["vars"].map {|v| ENV[v]}.compact.first
+          @environment = @data["environment"]
+          if !@environment && @data["environment-from"]
+            from = @data["environment-from"]
+            if from.respond_to?(:map)
+              @environment ||= from.map {|v| ENV[v]}.compact.first
+            else
+              @environment = ENV[from].to_s
             end
           end
         end
