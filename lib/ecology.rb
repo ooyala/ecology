@@ -12,118 +12,118 @@ module Ecology
 
   Ecology.mutex = Mutex.new
 
-  # Normally this is only for testing.
-  def self.reset
-    @application = nil
-    @data = nil
+  class << self
+    # Normally this is only for testing.
+    def reset
+      @application = nil
+      @data = nil
 
-    @ecology_initialized = nil
-  end
+      @ecology_initialized = nil
+    end
 
-  def self.read(ecology_pathname = nil)
-    return if @ecology_initialized
-
-    mutex.synchronize {
+    def read(ecology_pathname = nil)
       return if @ecology_initialized
 
-      reset
+      mutex.synchronize do
+        return if @ecology_initialized
 
-      file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
-      if File.exist?(file_path)
-        contents = File.read(file_path)
-        @data = MultiJson.decode(contents);
+        reset
 
-        if @data
-          @application = @data["application"]
+        file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
+        if File.exist?(file_path)
+          contents = File.read(file_path)
+          @data = MultiJson.decode(contents);
 
-          @environment = @data["environment"]
-          if !@environment && @data["environment-from"]
-            from = @data["environment-from"]
-            if from.respond_to?(:map)
-              @environment ||= from.map {|v| ENV[v]}.compact.first
-            else
-              @environment = ENV[from].to_s
+          if @data
+            @application = @data["application"]
+
+            @environment = @data["environment"]
+            if !@environment && @data["environment-from"]
+              from = @data["environment-from"]
+              if from.respond_to?(:map)
+                @environment ||= from.map {|v| ENV[v]}.compact.first
+              else
+                @environment = ENV[from].to_s
+              end
             end
           end
         end
-      end
-      @application ||= File.basename($0)
-      @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
+        @application ||= File.basename($0)
+        @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
 
-      @ecology_initialized = true
+        #environmentize_data
+
+        @ecology_initialized = true
+      end
+    end
+
+    def property(param, options = {})
+      components = param.split("::")
+
+      value = components.inject(@data) do |data, component|
+        if data
+          data[component]
+        else
+          nil
+        end
+      end
+
+      return nil unless value
+      return value unless options[:as]
+
+      unless value.is_a?(Hash)
+        if options[:as] == String
+          return value.to_s
+        elsif options[:as] == Symbol
+          return value.to_sym
+        elsif options[:as] == Fixnum
+          return value.to_i
+        elsif options[:as] == Hash
+          raise "Cannot convert scalar value to Hash!"
+        else
+          raise "Unknown type #{options[:as].inspect} passed to Ecology.data(:as)!"
+        end
+      end
+
+      return value if options[:as] == Hash
+    end
+
+    PATH_SUBSTITUTIONS = {
+      "$env" => proc { Ecology.environment },
+      "$cwd" => proc { Dir.getwd },
+      "$app" => proc { File.dirname($0) },
     }
-  end
 
-  def self.property(param, options = {})
-    components = param.split("::")
+    def path(path_name)
+      path_data = @data ? @data["paths"] : nil
+      return nil unless path_data && path_data[path_name]
 
-    value = components.inject(@data) do |data, component|
-      if data
-        data[component]
-      else
-        nil
+      path = path_data[path_name]
+      PATH_SUBSTITUTIONS.each do |key, value|
+        path.gsub! key, value.call
       end
+
+      path
     end
 
-    return nil unless value
-    return value unless options[:as]
-
-    unless value.is_a?(Hash)
-      case options[:as]
-      when String
-        return value.to_s
-      when Symbol
-        return value.to_sym
-      when Integer
-        return value.to_i
-      when Hash
-        raise "Cannot convert scalar value to Hash!"
-      else
-        raise "Unknown type passed to Ecology.data(:as)!"
-      end
+    def default_ecology_name(executable = $0)
+      suffix = File.extname(executable)
+      executable[0..(executable.length - 1 - suffix.size)] +
+        ECOLOGY_EXTENSION
     end
 
-    return value if options[:as] == Hash
+    # This is a convenience function because the Ruby
+    # thread API has no accessor for the thread ID,
+    # but includes it in "to_s" (buh?)
+    def thread_id(thread)
+      return "main" if thread == Thread.main
 
-    # This is where we will eventually convert a Hash to a
-    # scalar, usually based on environment.
-  end
+      str = thread.to_s
 
-  PATH_SUBSTITUTIONS = {
-    "$env" => proc { Ecology.environment },
-    "$cwd" => proc { Dir.getwd },
-    "$app" => proc { File.dirname($0) },
-  }
-
-  def self.path(path_name)
-    path_data = @data ? @data["paths"] : nil
-    return nil unless path_data && path_data[path_name]
-
-    path = path_data[path_name]
-    PATH_SUBSTITUTIONS.each do |key, value|
-      path.gsub! key, value.call
+      match = nil
+      match  = str.match /(0x\d+)/
+      return nil unless match
+      match[1]
     end
-
-    path
-  end
-
-  def self.default_ecology_name(executable = $0)
-    suffix = File.extname(executable)
-    executable[0..(executable.length - 1 - suffix.size)] +
-      ECOLOGY_EXTENSION
-  end
-
-  # This is a convenience function because the Ruby
-  # thread API has no accessor for the thread ID,
-  # but includes it in "to_s" (buh?)
-  def self.thread_id(thread)
-    return "main" if thread == Thread.main
-
-    str = thread.to_s
-
-    match = nil
-    match  = str.match /(0x\d+)/
-    return nil unless match
-    match[1]
   end
 end

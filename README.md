@@ -122,12 +122,12 @@ Here's another logging example:
   }
 }
 
-In this case, data can be converted from a Hash into an Int
-automatically:
+In this case, data can be converted from a Hash into a Fixnum
+or String automatically:
 
   Ecology.property("logging::stderr_level", :as => String)
 
-Ecology returns "fata" or "warn" here, depending on the value
+Ecology returns "fatal" or "warn" here, depending on the value
 of RAILS_ENV or RACK_ENV.
 
 Releasing within Ooyala
