@@ -54,6 +54,41 @@ module Ecology
     }
   end
 
+  def self.property(param, options = {})
+    components = param.split("::")
+
+    value = components.inject(@data) do |data, component|
+      if data
+        data[component]
+      else
+        nil
+      end
+    end
+
+    return nil unless value
+    return value unless options[:as]
+
+    unless value.is_a?(Hash)
+      case options[:as]
+      when String
+        return value.to_s
+      when Symbol
+        return value.to_sym
+      when Integer
+        return value.to_i
+      when Hash
+        raise "Cannot convert scalar value to Hash!"
+      else
+        raise "Unknown type passed to Ecology.data(:as)!"
+      end
+    end
+
+    return value if options[:as] == Hash
+
+    # This is where we will eventually convert a Hash to a
+    # scalar, usually based on environment.
+  end
+
   PATH_SUBSTITUTIONS = {
     "$env" => proc { Ecology.environment },
     "$cwd" => proc { Dir.getwd },

@@ -46,6 +46,90 @@ Absolutely every part of it is optional, including the presence of the file at a
 
 You can override the application name, as shown above.
 
+Paths
+=====
+
+If you have a configurable per-environment path, you probably want it in the "paths"
+section of your ecology.  For instance:
+
+{
+  "application": "SomeApp",
+  "paths": {
+    "pid_location": "/pid_dir/",
+    "app1_location": "$app/../dir1",
+    "app1_log_path": "$cwd/logs"
+  }
+}
+
+You can then access these paths with Ecology.path("app1_location") and similar.
+In the paths, "$app" will be replaced by the directory the application is run
+from, "$cwd" will be replaced by the current working directory, and "$env" will
+be replaced by the current environment.
+
+Reading Data
+============
+
+If your library is configured via Ecology, you'll likely want to read data
+from it.  For instance, let's look at the Termite logging library's method
+of configuration:
+
+{
+  "application": "SomeApp",
+  "logging": {
+    "level": "info",
+    "stderr_level": "warn",
+    "stdout_level": 4,
+    "extra_json_fields": {
+      "app_tag": "splodging_apps",
+      "precedence": 9
+    }
+  }
+}
+
+Termite can read the level via Ecology.property("logging::level"), which will
+give it in whatever form it appears in the JSON.
+Ecology.property("logging::extra_json_fields") would be returned as a Hash.
+You can return it as a String, Symbol, Array, Integer or Hash by supplying
+the :as option:
+
+  Ecology.property("logging::info", :as => Symbol)  # :info
+  Ecology.property("logging::stdout_level", :as => String) # "4"
+  Ecology.property("logging::extra_json_fields", :as => Symbol) # error!
+
+Environment-Specific Data
+=========================
+
+Often you'll want to supply a different path, hostname or other
+configuration variable depending on what environment you're
+currently deployed to - staging may want a different MemCacheD
+server than development, say.
+
+Here's another logging example:
+
+{
+  "application": "Ooyala Rails",
+  "environment-from": ["RAILS_ENV", "RACK_ENV"],
+  "logging": {
+    "console_out": {
+      "env:development": true,
+      "env:*": false
+    },
+    "stderr_level": {
+      "env:development": "fatal",
+      "env:production": "warn"
+    },
+    "stdout_level": "info"
+  }
+}
+
+In this case, data can be converted from a Hash into an Int
+automatically:
+
+  Ecology.property("logging::stderr_level", :as => String)
+
+Ecology returns "fata" or "warn" here, depending on the value
+of RAILS_ENV or RACK_ENV.
+
 Releasing within Ooyala
 =======================
 
