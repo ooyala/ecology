@@ -51,11 +51,33 @@ module Ecology
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
 
-        #environmentize_data
+        @data = environmentize_data(@data)
 
         @ecology_initialized = true
       end
     end
+
+    private
+
+    def environmentize_data(data_in)
+      if data_in.is_a?(Array)
+        data_in.map { |subdata| environmentize_data(subdata) }
+      elsif data_in.is_a?(Hash)
+        if data_in.keys.any? { |k| k =~ /^env:/ }
+          value = data_in["env:#{@environment}"] || data_in["env:*"]
+          return nil unless value
+          environmentize_data(value)
+        else
+          data_out = {}
+          data_in.each { |k, v| data_out[k] = environmentize_data(v) }
+          data_out
+        end
+      else
+        data_in
+      end
+    end
+
+    public
 
     def property(param, options = {})
       components = param.split("::")

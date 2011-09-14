@@ -24,11 +24,11 @@ ECOLOGY_CONTENTS
       ENV["RACK_ENV"] = nil
     end
 
-    #should "select the right environment value for a property" do
-    #  ENV["RACK_ENV"] = "staging"
-    #  Ecology.read
-    #  assert_equal "value2", Ecology.property("domain::property1", :as => String)
-    #end
+    should "select the right environment value for a property" do
+      ENV["RACK_ENV"] = "staging"
+      Ecology.read
+      assert_equal "value1", Ecology.property("domain::property1", :as => String)
+    end
 
   end
 end
