@@ -69,8 +69,7 @@ module Ecology
       file_data = environmentize_data(file_data)
 
       # Merge the file data into @data
-      # TODO(noah): Define a better recursive merge function
-      @data = file_data.merge(@data)
+      @data = deep_merge(@data, file_data)
 
       # Finally, process any inheritance/overrides
       if file_data["uses"]
@@ -80,6 +79,27 @@ module Ecology
           merge_with_overrides(file_data["uses"])
         end
       end
+    end
+
+    def deep_merge(hash1, hash2)
+      all_keys = hash1.keys | hash2.keys
+      ret = {}
+
+      all_keys.each do |key|
+        if hash1.has_key?(key) && hash2.has_key?(key)
+          if hash1[key].is_a?(Hash) && hash2[key].is_a?(Hash)
+            ret[key] = deep_merge(hash1[key], hash2[key])
+          else
+            ret[key] = hash1[key]
+          end
+        elsif hash1.has_key?(key)
+          ret[key] = hash1[key]
+        else
+          ret[key] = hash2[key]
+        end
+      end
+
+      ret
     end
 
     def environmentize_data(data_in)
