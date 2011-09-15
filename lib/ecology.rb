@@ -145,6 +145,8 @@ module Ecology
           return value.to_i
         elsif [Hash, :hash].include?(options[:as])
           raise "Cannot convert scalar value to Hash!"
+        elsif [:path].include?(options[:as])
+          return string_to_path(value.to_s)
         elsif [:json].include?(options[:as])
           raise "JSON return type not yet supported!"
         else
@@ -166,13 +168,20 @@ module Ecology
       path_data = @data ? @data["paths"] : nil
       return nil unless path_data && path_data[path_name]
 
-      path = path_data[path_name]
+      string_to_path path_data[path_name]
+    end
+
+    private
+
+    def string_to_path(path)
       PATH_SUBSTITUTIONS.each do |key, value|
         path.gsub! key, value.call
       end
 
       path
     end
+
+    public
 
     def default_ecology_name(executable = $0)
       suffix = File.extname(executable)

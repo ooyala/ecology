@@ -82,6 +82,7 @@ of configuration:
     "level": "info",
     "stderr_level": "warn",
     "stdout_level": 4,
+    "file_path": "$app/../log_to",
     "extra_json_fields": {
       "app_tag": "splodging_apps",
       "precedence": 9
@@ -91,6 +92,7 @@ of configuration:
 
 Termite can read the level via Ecology.property("logging::level"), which will
 give it in whatever form it appears in the JSON.
+
 Ecology.property("logging::extra_json_fields") would be returned as a Hash.
 You can return it as a String, Symbol, Array, Fixnum or Hash by supplying
 the :as option:
@@ -98,6 +100,7 @@ the :as option:
   Ecology.property("logging::info", :as => Symbol)  # :info
   Ecology.property("logging::stdout_level", :as => String) # "4"
   Ecology.property("logging::extra_json_fields", :as => Symbol) # error!
+  Ecology.property("logging::file_path", :as => :path) # "/home/theuser/sub/log_to"
 
 Environment-Specific Data
 =========================
@@ -153,15 +156,6 @@ later Ecologies.
 This can be used to set up Ecology "modules" for common functionality,
 or to override certain settings in certain environments from a common
 base template.
-
-Unfinished Features
-===================
-
-* You should be able to use a few special values for :as:
-
-  Ecology.property("logging::file_path", :as => :path)
-  Ecology.property("logging::extra_fields", :as => :json)
-
 
 Releasing within Ooyala
 =======================
