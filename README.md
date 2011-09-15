@@ -145,15 +145,10 @@ other Ecology files.
   "uses": [ "ecologies/logging.ecology", "ecologies/monitoring.ecology" ]
 }
 
-For now, fields are overridden at the top level.  So you can't
-split the top-level "logging" field between two different Ecology files.
-Each top-level field should occur in only one Ecology file, or it
-will be overridden completely by the "latest" value -- the top-level
-Ecology overrides the Ecologies that it uses, and so on down the
-hierarchy.
-
-If multiple Ecologies are used, the earlier Ecologies in the list
-override the later Ecologies.
+Each field will be overridden by the "latest" value -- the top-level
+Ecology overrides the Ecologies that it uses, and so on.  If multiple
+Ecologies are used, the earlier Ecologies in the list override the
+later Ecologies.
 
 This can be used to set up Ecology "modules" for common functionality,
 or to override certain settings in certain environments from a common
