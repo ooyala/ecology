@@ -39,6 +39,9 @@ An Ecology is a JSON file of roughly this structure:
     "console_print": "off",
     "filename": "/tmp/bobo.txt",
     "stderr_level": "fatal"
+  },
+  "monitoring": {
+    "zookeeper-host": "zookeeper-dev.sv2"
   }
 }
 
@@ -89,7 +92,7 @@ of configuration:
 Termite can read the level via Ecology.property("logging::level"), which will
 give it in whatever form it appears in the JSON.
 Ecology.property("logging::extra_json_fields") would be returned as a Hash.
-You can return it as a String, Symbol, Array, Integer or Hash by supplying
+You can return it as a String, Symbol, Array, Fixnum or Hash by supplying
 the :as option:
 
   Ecology.property("logging::info", :as => Symbol)  # :info
@@ -129,6 +132,41 @@ or String automatically:
 
 Ecology returns "fatal" or "warn" here, depending on the value
 of RAILS_ENV or RACK_ENV.
+
+Using Other Ecologies
+=====================
+
+The data in a given Ecology file can build on one or more
+other Ecology files.
+
+{
+  "application": "SomeApp",
+  "environment-from": [ "APP_ENV", "RACK_ENV" ],
+  "uses": [ "ecologies/logging.ecology", "ecologies/monitoring.ecology" ]
+}
+
+For now, fields are overridden at the top level.  So you can't
+split the top-level "logging" field between two different Ecology files.
+Each top-level field should occur in only one Ecology file, or it
+will be overridden completely by the "latest" value -- the top-level
+Ecology overrides the Ecologies that it uses, and so on down the
+hierarchy.
+
+If multiple Ecologies are used, the earlier Ecologies in the list
+override the later Ecologies.
+
+This can be used to set up Ecology "modules" for common functionality,
+or to override certain settings in certain environments from a common
+base template.
+
+Unfinished Features
+===================
+
+* You should be able to use a few special values for :as:
+
+  Ecology.property("logging::file_path", :as => :path)
+  Ecology.property("logging::extra_fields", :as => :json)
+
 
 Releasing within Ooyala
 =======================

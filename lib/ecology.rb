@@ -16,6 +16,7 @@ module Ecology
     # Normally this is only for testing.
     def reset
       @application = nil
+      @environment = nil
       @data = nil
 
       @ecology_initialized = nil
@@ -31,33 +32,55 @@ module Ecology
 
         file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
         if File.exist?(file_path)
-          contents = File.read(file_path)
-          @data = MultiJson.decode(contents);
-
-          if @data
-            @application = @data["application"]
-
-            @environment = @data["environment"]
-            if !@environment && @data["environment-from"]
-              from = @data["environment-from"]
-              if from.respond_to?(:map)
-                @environment ||= from.map {|v| ENV[v]}.compact.first
-              else
-                @environment = ENV[from].to_s
-              end
-            end
-          end
+          @data = {}
+          contents = merge_with_overrides(file_path)
         end
+
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
-
-        @data = environmentize_data(@data)
 
         @ecology_initialized = true
       end
     end
 
     private
+
+    def merge_with_overrides(file_path)
+      contents = File.read(file_path)
+      file_data = MultiJson.decode(contents);
+
+      return unless file_data
+
+      # First, try to set @application and @environment from the file data
+
+      @application ||= file_data["application"]
+      @environment ||= file_data["environment"]
+
+      if !@environment && file_data["environment-from"]
+        from = file_data["environment-from"]
+        if from.respond_to?(:map)
+          @environment ||= from.map {|v| ENV[v]}.compact.first
+        else
+          @environment = ENV[from] ? ENV[from].to_s : nil
+        end
+      end
+
+      # Next, filter the data by the current environment
+      file_data = environmentize_data(file_data)
+
+      # Merge the file data into @data
+      # TODO(noah): Define a better recursive merge function
+      @data = file_data.merge(@data)
+
+      # Finally, process any inheritance/overrides
+      if file_data["uses"]
+        if file_data["uses"].respond_to?(:map)
+          file_data["uses"].map { |file| merge_with_overrides(file) }
+        else
+          merge_with_overrides(file_data["uses"])
+        end
+      end
+    end
 
     def environmentize_data(data_in)
       if data_in.is_a?(Array)
@@ -94,20 +117,23 @@ module Ecology
       return value unless options[:as]
 
       unless value.is_a?(Hash)
-        if options[:as] == String
+        if [String, :string].include?(options[:as])
           return value.to_s
-        elsif options[:as] == Symbol
-          return value.to_sym
-        elsif options[:as] == Fixnum
+        elsif [Symbol, :symbol].include?(options[:as])
+          return value.to_s.to_sym
+        elsif [Fixnum, :int, :integer, :fixnum].include?(options[:as])
           return value.to_i
-        elsif options[:as] == Hash
+        elsif [Hash, :hash].include?(options[:as])
           raise "Cannot convert scalar value to Hash!"
+        elsif [:json].include?(options[:as])
+          raise "JSON return type not yet supported!"
         else
-          raise "Unknown type #{options[:as].inspect} passed to Ecology.data(:as)!"
+          raise "Unknown type #{options[:as].inspect} passed to Ecology.data(:as) for property #{property}!"
         end
       end
 
       return value if options[:as] == Hash
+      raise "Couldn't convert JSON fields to #{options[:as].inspect} for property #{property}!"
     end
 
     PATH_SUBSTITUTIONS = {

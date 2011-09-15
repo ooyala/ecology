@@ -52,5 +52,21 @@ ECOLOGY_CONTENTS
     should "get an integer property with no typecast" do
       assert_equal 1987, Ecology.property("domain::property3")
     end
+
+    should "be able to use :integer for a Fixnum typecast" do
+      assert_equal 374, Ecology.property("domain::property2", :as => :integer)
+    end
+
+    should "be able to use :int for a Fixnum typecast" do
+      assert_equal 374, Ecology.property("domain::property2", :as => :int)
+    end
+
+    should "be able to use :string for a String typecast" do
+      assert_equal "1987", Ecology.property("domain::property3", :as => :string)
+    end
+
+    should "be able to use :symbol for a Symbol typecast" do
+      assert_equal "1987".to_sym, Ecology.property("domain::property3", :as => :symbol)
+    end
   end
 end
