@@ -178,6 +178,7 @@ module Ecology
       "$env" => proc { Ecology.environment },
       "$cwd" => proc { Dir.getwd },
       "$app" => proc { File.dirname($0) },
+      "$pid" => proc { Process.pid.to_s },
     }
 
     def path(path_name)

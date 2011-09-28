@@ -64,10 +64,11 @@ section of your ecology.  For instance:
   }
 }
 
-You can then access these paths with Ecology.path("app1_location") and similar.
-In the paths, "$app" will be replaced by the directory the application is run
-from, "$cwd" will be replaced by the current working directory, and "$env" will
-be replaced by the current environment.
+You can then access these paths with Ecology.path("app1_location") and
+similar.  In the paths, "$app" will be replaced by the directory the
+application is run from, "$cwd" will be replaced by the current
+working directory, "$env" will be replaced by the current environment,
+and "$pid" will be replaced by the current process ID.
 
 Reading Data
 ============
