@@ -39,6 +39,7 @@ module Ecology
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
 
+        @triggers ||= {}
         (@triggers[:initialize] || []).each do |init_block|
           init_block.call
         end
