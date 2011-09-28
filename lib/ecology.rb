@@ -19,6 +19,7 @@ module Ecology
       @application = nil
       @environment = nil
       @data = nil
+      @triggers = {}
 
       @ecology_initialized = nil
     end
@@ -29,8 +30,6 @@ module Ecology
       mutex.synchronize do
         return if @ecology_initialized
 
-        reset
-
         file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
         if File.exist?(file_path)
           @data = {}
@@ -40,7 +39,23 @@ module Ecology
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
 
+        (@triggers[:initialize] || []).each do |init_block|
+          init_block.call
+        end
+
         @ecology_initialized = true
+      end
+    end
+
+    def on_initialize(&block)
+      mutex.synchronize do
+        if @ecology_initialized
+          block.call
+          return
+        end
+
+        @triggers[:initialize] ||= []
+        @triggers[:initialize] << block
       end
     end
 
