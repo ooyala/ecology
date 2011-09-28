@@ -21,6 +21,10 @@ ECOLOGY_CONTENTS
       Ecology.read
     end
 
+    should "get a top-level property" do
+      assert_equal "SomeApp", Ecology.property("application")
+    end
+
     should "get a string property without a typecast" do
       assert_equal "strval1", Ecology.property("domain::property1")
     end

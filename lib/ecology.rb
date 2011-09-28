@@ -140,7 +140,7 @@ module Ecology
     public
 
     def property(param, options = {})
-      components = param.split("::")
+      components = param.split(":").compact.select {|s| s != ""}
 
       value = components.inject(@data) do |data, component|
         if data
