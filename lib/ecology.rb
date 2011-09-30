@@ -55,6 +55,7 @@ module Ecology
           return
         end
 
+        @triggers ||= {}
         @triggers[:initialize] ||= []
         @triggers[:initialize] << block
       end
