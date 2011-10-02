@@ -47,6 +47,29 @@ ECOLOGY_CONTENTS
       Ecology.read
       Ecology.on_initialize { callee_mock.method }
     end
+
+    should "call on_reset events across multiple resets" do
+      callee_mock = mock("object that gets called")
+      callee_mock.expects(:method).twice
+
+      Ecology.read
+      Ecology.on_reset("multireset") { callee_mock.method }
+      Ecology.reset
+      Ecology.reset
+      Ecology.remove_trigger("multireset")  # otherwise, everything after fails w/ unexpected invocations
+    end
+
+    should "remove on_reset events after remove_trigger" do
+      callee_mock = mock("object that gets called")
+      callee_mock.expects(:method).once  # Not three times...
+
+      Ecology.read
+      Ecology.on_reset("on_reset_remove") { callee_mock.method }
+      Ecology.reset
+      Ecology.remove_trigger("on_reset_remove")
+      Ecology.reset
+      Ecology.reset
+    end
   end
 
 end

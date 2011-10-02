@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ecology (0.0.7)
+    ecology (0.0.9)
       multi_json
 
 GEM

@@ -16,16 +16,25 @@ module Ecology
   class << self
     # Normally this is only for testing.
     def reset
+      # Preserve reset triggers across resets
+      @triggers ||= {}
+      reset_triggers = @triggers[:reset]
+
       @application = nil
       @environment = nil
       @data = nil
       @triggers = {}
-
+      @triggers[:reset] = reset_triggers
       @ecology_initialized = nil
+
+      # Do this *before* we clear the triggers
+      publish_event :reset
     end
 
     def read(ecology_pathname = nil)
       return if @ecology_initialized
+
+      should_publish_event = false
 
       mutex.synchronize do
         return if @ecology_initialized
@@ -39,29 +48,63 @@ module Ecology
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
 
-        @triggers ||= {}
-        (@triggers[:initialize] || []).each do |init_block|
-          init_block.call
-        end
+        should_publish_event = true
 
         @ecology_initialized = true
       end
+
+      # Do this outside the mutex to reduce the likelihood
+      # of deadlocks.
+      publish_event(:initialize) if should_publish_event
     end
 
-    def on_initialize(&block)
+    def on_initialize(token = nil, &block)
+      on_event(:initialize, token, &block)
+    end
+
+    def on_reset(token = nil, &block)
+      on_event(:reset, token, &block)
+    end
+
+    def remove_trigger(token)
+      @triggers ||= {}
+      @triggers.each do |event, trigger_list|
+        @triggers[event].delete(token)
+      end
+    end
+
+    private
+
+    def on_event(event, token = nil, &block)
       mutex.synchronize do
-        if @ecology_initialized
+        @token_offset ||= 0
+        token ||= "token#{@token_offset}"
+
+        # It's important this be synchronized so that
+        # we can't get double-events or events not
+        # dispatching.
+        if event == :initialize && @ecology_initialized
           block.call
           return
         end
 
         @triggers ||= {}
-        @triggers[:initialize] ||= []
-        @triggers[:initialize] << block
+        @triggers[event] ||= {}
+        @triggers[event][token] = block
       end
     end
 
-    private
+    def publish_event(event)
+      @triggers ||= {}
+
+      # This doesn't lock the mutex, because there's too high
+      # a chance of somebody calling Ecology.read or on_event
+      # or something while we're doing this.  That would
+      # deadlock, which is no good.
+      (@triggers[event] || {}).each do |token, event_block|
+        event_block.call
+      end
+    end
 
     def merge_with_overrides(file_path)
       contents = File.read(file_path)
