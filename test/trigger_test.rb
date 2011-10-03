@@ -50,6 +50,16 @@ ECOLOGY_CONTENTS
       Ecology.on_initialize("test_on_init") { callee_mock.method }
     end
 
+    should "call on_initialize events again after reset" do
+      callee_mock = mock("object that gets called")
+      callee_mock.expects(:method).twice
+
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
+      Ecology.read
+      Ecology.reset
+      Ecology.read
+    end
+
     should "call on_reset events across multiple resets" do
       callee_mock = mock("object that gets called")
       callee_mock.expects(:method).twice
