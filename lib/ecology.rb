@@ -16,18 +16,14 @@ module Ecology
   class << self
     # Normally this is only for testing.
     def reset
-      # Preserve reset triggers across resets
+      # Preserve triggers across resets by default
       @triggers ||= {}
-      reset_triggers = @triggers[:reset]
 
       @application = nil
       @environment = nil
       @data = nil
-      @triggers = {}
-      @triggers[:reset] = reset_triggers
       @ecology_initialized = nil
 
-      # Do this *before* we clear the triggers
       publish_event :reset
     end
 

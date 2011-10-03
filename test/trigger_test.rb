@@ -2,6 +2,8 @@ require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class EnvironmentTest < Scope::TestCase
   setup do
+    Ecology.remove_trigger("test_on_init")
+    Ecology.remove_trigger("test_on_reset")
     Ecology.reset
   end
 
@@ -10,7 +12,7 @@ class EnvironmentTest < Scope::TestCase
       callee_mock = mock("object that gets called")
       callee_mock.expects(:method)
 
-      Ecology.on_initialize { callee_mock.method }
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
       Ecology.read
     end
 
@@ -19,7 +21,7 @@ class EnvironmentTest < Scope::TestCase
       callee_mock.expects(:method)
 
       Ecology.read
-      Ecology.on_initialize { callee_mock.method }
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
     end
   end
 
@@ -36,7 +38,7 @@ ECOLOGY_CONTENTS
       callee_mock = mock("object that gets called")
       callee_mock.expects(:method)
 
-      Ecology.on_initialize { callee_mock.method }
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
       Ecology.read
     end
 
@@ -45,7 +47,7 @@ ECOLOGY_CONTENTS
       callee_mock.expects(:method)
 
       Ecology.read
-      Ecology.on_initialize { callee_mock.method }
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
     end
 
     should "call on_reset events across multiple resets" do
@@ -53,10 +55,9 @@ ECOLOGY_CONTENTS
       callee_mock.expects(:method).twice
 
       Ecology.read
-      Ecology.on_reset("multireset") { callee_mock.method }
+      Ecology.on_reset("test_on_reset") { callee_mock.method }
       Ecology.reset
       Ecology.reset
-      Ecology.remove_trigger("multireset")  # otherwise, everything after fails w/ unexpected invocations
     end
 
     should "remove on_reset events after remove_trigger" do
