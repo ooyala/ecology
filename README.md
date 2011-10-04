@@ -91,17 +91,17 @@ of configuration:
   }
 }
 
-Termite can read the level via Ecology.property("logging::level"), which will
+Termite can read the level via Ecology.property("logging:level"), which will
 give it in whatever form it appears in the JSON.
 
-Ecology.property("logging::extra_json_fields") would be returned as a Hash.
+Ecology.property("logging:extra_json_fields") would be returned as a Hash.
 You can return it as a String, Symbol, Array, Fixnum or Hash by supplying
 the :as option:
 
-  Ecology.property("logging::info", :as => Symbol)  # :info
-  Ecology.property("logging::stdout_level", :as => String) # "4"
-  Ecology.property("logging::extra_json_fields", :as => Symbol) # error!
-  Ecology.property("logging::file_path", :as => :path) # "/home/theuser/sub/log_to"
+  Ecology.property("logging:info", :as => Symbol)  # :info
+  Ecology.property("logging:stdout_level", :as => String) # "4"
+  Ecology.property("logging:extra_json_fields", :as => Symbol) # error!
+  Ecology.property("logging:file_path", :as => :path) # "/home/theuser/sub/log_to"
 
 Environment-Specific Data
 =========================
@@ -132,7 +132,7 @@ Here's another logging example:
 In this case, data can be converted from a Hash into a Fixnum
 or String automatically:
 
-  Ecology.property("logging::stderr_level", :as => String)
+  Ecology.property("logging:stderr_level", :as => String)
 
 Ecology returns "fatal" or "warn" here, depending on the value
 of RAILS_ENV or RACK_ENV.
@@ -157,6 +157,58 @@ later Ecologies.
 This can be used to set up Ecology "modules" for common functionality,
 or to override certain settings in certain environments from a common
 base template.
+
+Events
+======
+
+You often want to set your ecology-related properties when the ecology
+is initialized, but no earlier.  You may not know exactly when the
+earliest call to Ecology.read will be.  In that case, you want to use
+the on_initialize event hook:
+
+Ecology.on_initialize do
+  @my_property = Ecology.property("my:property")
+end
+
+If the ecology was already initialized before you set the
+on_initialize hook, then the hook will run immediately.
+
+There is also an on_reset hook.  Read "Testing with an Ecology" to
+find out why you'd ever care about that.
+
+Testing with an Ecology
+=======================
+
+In production use, you'll probably never reset the ecology.  However,
+in testing you may frequently want to, especially if you're testing a
+library that ties closely into the ecology.
+
+There are two basic approaches your library can take, and they affect
+testing.
+
+Termite, our logging library, copies settings from the ecology into
+its instance.  Then, when you reset the ecology, you can also discard
+old logger objects with old settings.
+
+Glowworm, our feature flags library, is basically a big singleton and
+uses ecology data, so it needs to reset its internal state when the
+ecology is reset, and then re-read that state when the ecology is next
+initialized.
+
+Code for that for your library might look something like:
+
+MyLib.on_reset do
+  @myvar1 = nil
+  @myvar2 = nil
+end
+
+MyLib.on_initialize do
+  @myvar1 = Ecology.property("mylib:property1", :as => :string)
+  @myvar2 = Ecology.property("mylib:property2", :as => :path)
+end
+
+Hooks persist across resets.  That is, your on_reset hook will be
+called on every reset until you explicitly remove it.
 
 Releasing within Ooyala
 =======================

@@ -1,3 +1,5 @@
 * Use Erubis before evaluating
 
 * On Ecology.read calls, make sure ecology filename hasn't changed (and warn if it has)
+
+* Have Ecology.read try to do a read relative to the executable's directory first rather than relative to cwd.
