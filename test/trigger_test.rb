@@ -2,8 +2,11 @@ require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class EnvironmentTest < Scope::TestCase
   setup do
-    Ecology.clear_triggers
     Ecology.reset
+  end
+
+  teardown do
+    Ecology.clear_triggers
   end
 
   context "without an ecology" do
@@ -108,6 +111,17 @@ ECOLOGY_CONTENTS
       Ecology.reset
       Ecology.reset
     end
+
+    should "repeat on_initialize events even when called after initialize" do
+      callee_mock = mock("object that gets called")
+      callee_mock.expects(:method).twice
+
+      Ecology.read
+      Ecology.on_initialize("test_on_init") { callee_mock.method }
+      Ecology.reset
+      Ecology.read
+    end
+
   end
 
 end

@@ -80,17 +80,13 @@ module Ecology
         @token_offset ||= 0
         token ||= "token#{@token_offset}"
 
-        # It's important this be synchronized so that
-        # we can't get double-events or events not
-        # dispatching.
-        if event == :initialize && @ecology_initialized
-          block.call
-          return
-        end
-
         @triggers ||= {}
         @triggers[event] ||= {}
         @triggers[event][token] = block
+
+        if event == :initialize && @ecology_initialized
+          block.call
+        end
       end
     end
 
