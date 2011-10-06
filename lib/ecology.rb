@@ -27,6 +27,10 @@ module Ecology
       publish_event :reset
     end
 
+    def clear_triggers
+      @triggers = {}
+    end
+
     def read(ecology_pathname = nil)
       return if @ecology_initialized
 
