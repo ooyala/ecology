@@ -176,6 +176,25 @@ on_initialize hook, then the hook will run immediately.
 There is also an on_reset hook.  Read "Testing with an Ecology" to
 find out why you'd ever care about that.
 
+Ecology.read Etiquette
+======================
+
+If you're writing an application, try to call Ecology.read early.
+Libraries depending on it can then initialize themselves, now that
+they know where your Ecology data is.
+
+If you're writing a library, call Ecology.on_initialize early to make
+sure you get initialized as soon as possible.  You'll probably need
+your own Ecology.read call since your containing application may not
+use Ecology, or have an Ecology file.  Try to make Ecology.read happen
+as late as you can - the first time you genuinely need the data, for
+instance.
+
+For test purposes, if you set a bunch of data with
+Ecology.on_initialize, try to register Ecology.on_reset to clear that
+same data.  Then a test using Ecology.reset can test your library with
+different settings.
+
 Testing with an Ecology
 =======================
 
