@@ -1,5 +1,6 @@
 require "multi_json"
 require "thread"
+require "ecology/version"
 
 module Ecology
   class << self
