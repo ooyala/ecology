@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
-class EnvironmentTest < Scope::TestCase
+class TriggerTest < Scope::TestCase
   setup do
     Ecology.reset
   end

@@ -16,6 +16,7 @@ class EcologyTest < Scope::TestCase
 
     should "respect the ECOLOGY_SPEC environment variable" do
       ENV['ECOLOGY_SPEC'] = '/tmp/bobo.txt'
+      File.expects(:exist?).with('/tmp/bobo.txt.erb').returns(false).at_least_once
       File.expects(:exist?).with('/tmp/bobo.txt').returns(true)
       File.expects(:read).with('/tmp/bobo.txt').returns('{ "application": "foo_app" }')
       Ecology.read
@@ -31,6 +32,7 @@ class EcologyTest < Scope::TestCase
       $0 = "whatever_app.rb"
 
       ENV['ECOLOGY_SPEC'] = nil
+      File.expects(:exist?).with("whatever_app.ecology.erb").returns(false).at_least_once
       File.expects(:exist?).with("whatever_app.ecology").returns(false)
 
       Ecology.read

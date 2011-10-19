@@ -39,10 +39,15 @@ module Ecology
       mutex.synchronize do
         return if @ecology_initialized
 
-        file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
-        if File.exist?(file_path)
-          @data = {}
-          contents = merge_with_overrides(file_path)
+        filelist = [ENV["ECOLOGY_SPEC"], ecology_pathname, default_ecology_name]
+        filelist.detect do |file_path|
+          if file_path && (File.exist?(file_path) || File.exist?(file_path + ".erb"))
+            @data = {}
+            contents = merge_with_overrides(file_path)
+            true
+          else
+            false
+          end
         end
 
         @application ||= File.basename($0)
@@ -103,7 +108,18 @@ module Ecology
     end
 
     def merge_with_overrides(file_path)
-      contents = File.read(file_path)
+      if File.exist?(file_path + ".erb")
+        contents = File.read(file_path + ".erb")
+
+        require "erubis"
+        var_hash = {
+          :ecology_version => Ecology::VERSION,
+          :filename => "#{file_path}.erb",
+        }
+        contents = Erubis::Eruby.new(contents).result(var_hash)
+      else
+        contents = File.read(file_path)
+      end
       file_data = MultiJson.decode(contents);
 
       return unless file_data

@@ -1,12 +1,14 @@
 PATH
   remote: .
   specs:
-    ecology (0.0.11)
+    ecology (0.0.12)
+      erubis
       multi_json
 
 GEM
   remote: http://rubygems.org/
   specs:
+    erubis (2.7.0)
     minitest (2.3.0)
     mocha (0.9.12)
     multi_json (1.0.3)
