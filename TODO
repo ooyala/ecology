@@ -4,5 +4,3 @@
   under this top-level tag".
 
 * Allow setting environment variables based on Ecology
-
-* Export set_up_ecology in Ecology test infrastructure for use in Ecology-based gems
