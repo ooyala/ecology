@@ -1,7 +1,8 @@
-* On Ecology.read calls, make sure ecology filename hasn't changed (and warn if it has)
-
 * Have Ecology.read try to do a read relative to the executable's directory first rather than relative to cwd.
 
-* Register properties by top-level tag
+* Allow registration of properties by top-level tag - a particular gem can say "these are the permitted properties
+  under this top-level tag".
 
 * Allow setting environment variables based on Ecology
+
+* Export set_up_ecology in Ecology test infrastructure for use in Ecology-based gems

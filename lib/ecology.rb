@@ -24,6 +24,7 @@ module Ecology
       @environment = nil
       @data = nil
       @ecology_initialized = nil
+      @ecology_path = nil
 
       publish_event :reset
     end
@@ -33,23 +34,27 @@ module Ecology
     end
 
     def read(ecology_pathname = nil)
-      return if @ecology_initialized
+      filelist = [ENV["ECOLOGY_SPEC"], ecology_pathname, default_ecology_name]
+      ecology_path = filelist.detect { |file_path|
+        file_path && (File.exist?(file_path) || File.exist?(file_path + ".erb"))
+      }
+
+      if @ecology_initialized
+        if ecology_path != @ecology_path
+          raise "You've tried to load both #{ecology_path || "nothing"} and " +
+            "#{@ecology_path || "nothing"} as ecology files since last reset!"
+        end
+        return
+      end
 
       should_publish_event = false
 
       mutex.synchronize do
         return if @ecology_initialized
 
-        filelist = [ENV["ECOLOGY_SPEC"], ecology_pathname, default_ecology_name]
-        filelist.detect do |file_path|
-          if file_path && (File.exist?(file_path) || File.exist?(file_path + ".erb"))
-            @data = {}
-            contents = merge_with_overrides(file_path)
-            true
-          else
-            false
-          end
-        end
+        @ecology_path = ecology_path
+        @data ||= {}
+        contents = merge_with_overrides(ecology_path) if ecology_path
 
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"

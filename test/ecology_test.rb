@@ -39,5 +39,37 @@ class EcologyTest < Scope::TestCase
 
       assert_equal "whatever_app.rb", Ecology.application
     end
+
+    should "prevent repeat Ecology.read with different ecology files" do
+      set_up_ecology <<JSON
+{
+  "application": "bob"
+}
+JSON
+      Ecology.read
+      set_up_ecology(<<JSON, "other.ecology", :no_read => true)
+{
+  "application": "sam"
+}
+JSON
+      assert_raises(RuntimeError) do
+        Ecology.read
+      end
+    end
+
+    should "allow repeat Ecology.read with same ecology files" do
+      set_up_ecology(<<JSON, "same.ecology")
+{
+  "application": "bob"
+}
+JSON
+      Ecology.read
+      set_up_ecology(<<JSON, "same.ecology", :no_read => true)
+{
+  "application": "sam"
+}
+JSON
+      Ecology.read  # should not raise
+    end
   end
 end
