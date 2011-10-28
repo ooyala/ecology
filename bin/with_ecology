@@ -6,12 +6,29 @@ require "multi_json"
 
 if ARGV.size == 0
   $stderr.puts <<USAGE
-Usage:  with_ecology <ecology-name>.ecology[.erb] <binary> [<args>]
+Usage:  with_ecology [-simple] <ecology-name>.ecology[.erb] <binary> [<args>]
+
+Use "-simple" to exclude ECOLOGY_property_LENGTH and _TYPE fields.
 USAGE
   exit -1
 end
 
-Ecology.read(ARGV.shift)
+@exclude_fields = false
+
+ARGS = ["-simple"]
+
+arg = ARGV.shift
+
+while ARGS.include?(arg)
+  if arg == "-simple"
+    @exclude_fields = true
+    arg = ARGV.shift
+  end
+end
+
+arg = ARGV.shift if arg == "--"
+
+Ecology.read(arg)
 
 def export_prefix_key_value(prefix, key, value)
   env_var_name = "#{prefix}#{key}"
@@ -34,7 +51,11 @@ def export_prefix_key_value(prefix, key, value)
   end
 
   ENV[env_var_name] = value.to_s
-  ENV[env_var_name + "_TYPE"] = type
+
+  unless @exclude_fields
+    ENV[env_var_name + "_TYPE"] = type
+    ENV[env_var_name + "_LENGTH"] = value.to_s.length.to_s
+  end
 end
 
 def export_properties(data, prefix)
