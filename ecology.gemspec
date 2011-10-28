@@ -24,7 +24,9 @@ EOS
   dotfiles = Dir[".*"]
   s.files = Dir["**/*"].reject {|f| File.directory?(f) || ignores.any? {|i| File.fnmatch(i, f) } } + dotfiles
   s.test_files = s.files.grep(/^test\//)
+  s.executables << "with_ecology"
 
+  s.bindir = "bin"
   s.require_paths = ["lib"]
 
   s.add_dependency "multi_json"

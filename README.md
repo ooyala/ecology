@@ -103,8 +103,57 @@ the :as option:
   Ecology.property("logging:extra_json_fields", :as => Symbol) # error!
   Ecology.property("logging:file_path", :as => :path) # "/home/theuser/sub/log_to"
 
+Embedded Ruby
+=============
+
+If instead of a .ecology file, you have a .ecology.erb file, it will
+be parsed using Erubis and *then* parsed using JSON.  This makes it
+easy to have conditional properties.
+
+Using outside Ruby
+==================
+
+Use the with_ecology binary to pre-parse, pre-use Erb and then run
+another binary with the Ecology data put into environment variables.
+
+For example, assume you have a my.ecology.erb that looks like:
+
+{
+  "application": "<%= "bob" %>",
+  "property1": {
+    "foo": "bar",
+    "baz": 7
+  }
+}
+
+Now run the following:
+
+  $ with_ecology my.ecology env | grep ECOLOGY
+
+You'll see:
+
+ECOLOGY_application=bob
+ECOLOGY_application_TYPE=string
+ECOLOGY_property1_foo=bar
+ECOLOGY_property1_foo_TYPE=string
+ECOLOGY_property1_baz=7
+ECOLOGY_property1_baz_TYPE=int
+
+This is just a translations of the ecology fields into environment
+variable names.  You can usually ignore the types, but (rarely) this
+can be important if you need to know whether the ecology specified a
+number directly or as a string, or to find out whether a field was
+a null or the empty string.
+
+This can be useful to pass variables to non-Ruby programs, or any time
+you don't want to have to link with Erubis and a JSON parser.  You'll
+need to parse the properties from environment variables yourself,
+though.
+
 Environment-Specific Data
 =========================
+
+(Note: this section is mostly obsolete.  You can use Erb for this)
 
 Often you'll want to supply a different path, hostname or other
 configuration variable depending on what environment you're
@@ -197,6 +246,11 @@ different settings.
 
 Testing with an Ecology
 =======================
+
+The Ecology library provides a simple hook for setting up an ecology
+for your application.  Just require "ecology/test_methods" into your
+test or test_helper, then call set_up_ecology with the text of the
+ecology as the first argument.
 
 In production use, you'll probably never reset the ecology.  However,
 in testing you may frequently want to, especially if you're testing a

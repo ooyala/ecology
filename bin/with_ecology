@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "ecology"
+require "multi_json"
+
+if ARGV.size == 0
+  $stderr.puts <<USAGE
+Usage:  with_ecology <ecology-name>.ecology[.erb] <binary> [<args>]
+USAGE
+  exit -1
+end
+
+Ecology.read(ARGV.shift)
+
+def export_prefix_key_value(prefix, key, value)
+  env_var_name = "#{prefix}#{key}"
+
+  type = case value
+  when Fixnum
+    "int"
+  when String
+    "string"
+  when Float
+    "float"
+  when TrueClass
+    "bool"
+  when FalseClass
+    "bool"
+  when NilClass
+    "null"
+  else
+    "unknown"
+  end
+
+  ENV[env_var_name] = value.to_s
+  ENV[env_var_name + "_TYPE"] = type
+end
+
+def export_properties(data, prefix)
+  data.each do |key, value|
+    if value.is_a?(Hash)
+      export_properties(value, "#{prefix}#{key}_")
+    elsif value.is_a?(Array)
+      export_prefix_key_value prefix, key, MultiJSON.encode(value)
+    else
+      export_prefix_key_value prefix, key, value
+    end
+  end
+end
+
+export_properties(Ecology.data, "ECOLOGY_")
+
+exec ARGV.join(" ")

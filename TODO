@@ -2,5 +2,3 @@
 
 * Allow registration of properties by top-level tag - a particular gem can say "these are the permitted properties
   under this top-level tag".
-
-* Allow setting environment variables based on Ecology
