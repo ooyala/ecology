@@ -229,20 +229,35 @@ Ecology.read Etiquette
 ======================
 
 If you're writing an application, try to call Ecology.read early.
-Libraries depending on it can then initialize themselves, now that
-they know where your Ecology data is.
+Libraries depending on it can then initialize themselves since they
+know where your Ecology data is.
 
-If you're writing a library, call Ecology.on_initialize early to make
-sure you get initialized as soon as possible.  You'll probably need
-your own Ecology.read call since your containing application may not
-use Ecology, or have an Ecology file.  Try to make Ecology.read happen
-as late as you can - the first time you genuinely need the data, for
+If you're writing a library, call Ecology.read as late as you can.  If
+you applications that use your library also use Ecology, maybe you can
+go without using it at all.  But if you're calling Ecology.read with
+no filename to make sure data is initialized, do it as late as you can
+possibly get away with it.
+
+But in a library, call Ecology.on_initialize early to make sure you
+get initialized as soon as possible.  You'll probably need your own
+Ecology.read call since your containing application may not use
+Ecology, or have an Ecology file.  Try to make Ecology.read happen as
+late as you can - the first time you genuinely need the data, for
 instance.
 
 For test purposes, if you set a bunch of data with
 Ecology.on_initialize, try to register Ecology.on_reset to clear that
 same data.  Then a test using Ecology.reset can test your library with
 different settings.
+
+Ecology and Libraries
+=====================
+
+In Rails 3, Ecology.read belongs somewhere like config/application.rb.
+In Rails 2, Ecology.read should probably be in config/environment.rb,
+early on.  In Sinatra, you want it in your configure block.  In
+general, it should go with configuration information and it should be
+executed as soon as possible.
 
 Testing with an Ecology
 =======================
