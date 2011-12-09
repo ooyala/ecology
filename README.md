@@ -303,7 +303,7 @@ Releasing within Ooyala
 
 Ooyalans, to release Ecology to gems.sv2, use the following:
 
-  gem build
+  rake build
   rake _0.8.7_ -f ../ooyala_gems.rake gem:push ecology-0.0.1.gem
 
 Change the version to the actual version you'd like to push.
