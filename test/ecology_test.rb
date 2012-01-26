@@ -71,5 +71,20 @@ JSON
 JSON
       Ecology.read  # should not raise
     end
+
+    should "allow repeat Ecology.read with different paths to the same ecology files" do
+      set_up_ecology(<<JSON, "same.ecology")
+{
+  "application": "bob"
+}
+JSON
+      Ecology.read
+      set_up_ecology(<<JSON, "./same.ecology", :no_read => true)
+{
+  "application": "sam"
+}
+JSON
+      Ecology.read  # should not raise
+    end
   end
 end

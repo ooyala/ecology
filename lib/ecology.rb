@@ -40,7 +40,7 @@ module Ecology
       }
 
       if @ecology_initialized
-        if ecology_path != nil && ecology_path != @ecology_path
+        if ecology_path != nil && File.expand_path(ecology_path) != File.expand_path(@ecology_path)
           raise "You've tried to load both #{ecology_path.inspect || "nothing"} and " +
             "#{@ecology_path.inspect || "nothing"} as ecology files since last reset!"
         end
