@@ -118,6 +118,7 @@ module Ecology
       end
     end
 
+    # This function populates the @data object, which contains the contents of the ecology file.
     def merge_with_overrides(file_path)
       if File.exist?(file_path + ".erb")
         contents = File.read(file_path + ".erb")
@@ -186,21 +187,21 @@ module Ecology
       ret
     end
 
-    def environmentize_data(data_in)
-      if data_in.is_a?(Array)
-        data_in.map { |subdata| environmentize_data(subdata) }
-      elsif data_in.is_a?(Hash)
-        if data_in.keys.any? { |k| k =~ /^env:/ }
-          value = data_in["env:#{@environment}"] || data_in["env:*"]
+    def environmentize_data(input_data)
+      if input_data.is_a?(Array)
+        input_data.map { |subdata| environmentize_data(subdata) }
+      elsif input_data.is_a?(Hash)
+        if input_data.keys.any? { |k| k =~ /^env:/ }
+          value = input_data["env:#{@environment}"] || input_data["env:*"]
           return nil unless value
           environmentize_data(value)
         else
-          data_out = {}
-          data_in.each { |k, v| data_out[k] = environmentize_data(v) }
-          data_out
+          output_data = {}
+          input_data.each { |k, v| output_data[k] = environmentize_data(v) }
+          output_data
         end
       else
-        data_in
+        input_data
       end
     end
 
