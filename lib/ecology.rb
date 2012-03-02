@@ -64,6 +64,7 @@ module Ecology
       # Do this outside the mutex to reduce the likelihood
       # of deadlocks.  This will run all of the on_initialize triggers.
       publish_event(:initialize) if should_publish_event
+      nil
     end
 
     # These functions are called to set and remove triggers that are called when
