@@ -233,7 +233,7 @@ Libraries depending on it can then initialize themselves since they
 know where your Ecology data is.
 
 If you're writing a library, call Ecology.read as late as you can.  If
-you applications that use your library also use Ecology, maybe you can
+your applications that use your library also use Ecology, maybe you can
 go without using it at all.  But if you're calling Ecology.read with
 no filename to make sure data is initialized, do it as late as you can
 possibly get away with it.

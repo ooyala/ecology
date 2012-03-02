@@ -29,10 +29,7 @@ module Ecology
       publish_event :reset
     end
 
-    def clear_triggers
-      @triggers = {}
-    end
-
+    # This function is called in applications or libraries to initialize the ecology
     def read(ecology_pathname = nil)
       filelist = [ENV["ECOLOGY_SPEC"], ecology_pathname, default_ecology_name]
       ecology_path = filelist.detect { |file_path|
@@ -54,7 +51,7 @@ module Ecology
 
         @ecology_path = ecology_path
         @data ||= {}
-        contents = merge_with_overrides(ecology_path) if ecology_path
+        contents = merge_with_overrides(@ecology_path) if @ecology_path
 
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
@@ -69,6 +66,8 @@ module Ecology
       publish_event(:initialize) if should_publish_event
     end
 
+    # These functions are called to set and remove triggers that are called when
+    # the specified event has occurred.
     def on_initialize(token = nil, &block)
       on_event(:initialize, token, &block)
     end
@@ -82,6 +81,10 @@ module Ecology
       @triggers.each do |event, trigger_list|
         @triggers[event].delete(token)
       end
+    end
+
+    def clear_triggers
+      @triggers = {}
     end
 
     private
@@ -101,6 +104,8 @@ module Ecology
       end
     end
 
+    # This function tells Ecology that a certain event (i.e. intialization) has happened.
+    # It will then proceed to run all of the triggers that have been set in the application for this event.
     def publish_event(event)
       @triggers ||= {}
 
