@@ -51,7 +51,7 @@ module Ecology
 
         @ecology_path = ecology_path
         @data ||= {}
-        merge_with_overrides(@ecology_path) if @ecology_path
+        merge_with_overrides!(@ecology_path) if @ecology_path
 
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
@@ -119,8 +119,10 @@ module Ecology
     end
 
     # This function populates the @data, @application, and @environment objects,
-    # which are populated from the ecology file.
-    def merge_with_overrides(file_path)
+    # which are populated from the ecology file. It prefers earlier values (top-level first),
+    # to values defined in inherited ecologies. This function does not return anything,
+    # but modifies @data directly.
+    def merge_with_overrides!(file_path)
       if File.exist?(file_path + ".erb")
         contents = File.read(file_path + ".erb")
 
@@ -160,12 +162,11 @@ module Ecology
       # Finally, process any inheritance/overrides
       if file_data["uses"]
         if file_data["uses"].respond_to?(:map)
-          file_data["uses"].map { |file| merge_with_overrides(file) }
+          file_data["uses"].map { |file| merge_with_overrides!(file) }
         else
-          merge_with_overrides(file_data["uses"])
+          merge_with_overrides!(file_data["uses"])
         end
       end
-      @data
     end
 
     # Merge two hashes, resolving conflicts by picking the value from the first.
