@@ -159,7 +159,7 @@ module Ecology
       # Merge the file data into @data, preferring previous values in @data to new values from the file.
       @data = deep_merge(@data, file_data)
 
-      # Finally, process any inheritance/overrides
+      # Finally, process any inheritance, without overriding already set values.
       if file_data["uses"]
         if file_data["uses"].respond_to?(:map)
           file_data["uses"].map { |file| merge_with_overrides!(file) }
@@ -212,6 +212,8 @@ module Ecology
 
     public
 
+    # Returns the value of a specified property, with nestings denoted with colons.
+    # This can be requested with :as => <type> as an option.
     def property(param, options = {})
       components = param.split(":").compact.select {|s| s != ""}
 
