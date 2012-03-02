@@ -118,7 +118,8 @@ module Ecology
       end
     end
 
-    # This function populates the @data object, which contains the contents of the ecology file.
+    # This function populates the @data, @application, and @environment objects,
+    # which are populated from the ecology file.
     def merge_with_overrides(file_path)
       if File.exist?(file_path + ".erb")
         contents = File.read(file_path + ".erb")
@@ -144,16 +145,16 @@ module Ecology
       if !@environment && file_data["environment-from"]
         from = file_data["environment-from"]
         if from.respond_to?(:map)
-          @environment ||= from.map {|v| ENV[v]}.compact.first
+          @environment ||= from.map {|env_var| ENV[env_var]}.compact.first
         else
-          @environment = ENV[from] ? ENV[from].to_s : nil
+          @environment ||= ENV[from] ? ENV[from].to_s : nil
         end
       end
 
       # Next, filter the data by the current environment
       file_data = environmentize_data(file_data)
 
-      # Merge the file data into @data
+      # Merge the file data into @data, preferring previous values in @data to new values from the file.
       @data = deep_merge(@data, file_data)
 
       # Finally, process any inheritance/overrides
@@ -164,8 +165,10 @@ module Ecology
           merge_with_overrides(file_data["uses"])
         end
       end
+      @data
     end
 
+    # Merge two hashes, resolving conflicts by picking the value from the first.
     def deep_merge(hash1, hash2)
       all_keys = hash1.keys | hash2.keys
       ret = {}
