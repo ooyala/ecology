@@ -191,6 +191,7 @@ module Ecology
       ret
     end
 
+    # This function crawls through input_data, and chooses values for environment-based keys.
     def environmentize_data(input_data)
       if input_data.is_a?(Array)
         input_data.map { |subdata| environmentize_data(subdata) }
@@ -214,9 +215,9 @@ module Ecology
     def property(param, options = {})
       components = param.split(":").compact.select {|s| s != ""}
 
-      value = components.inject(@data) do |data, component|
-        if data
-          data[component]
+      value = components.inject(@data) do |data_hash, component|
+        if data_hash && data_hash[component]
+          data_hash[component]
         else
           nil
         end
@@ -239,12 +240,12 @@ module Ecology
         elsif [:json].include?(options[:as])
           raise "JSON return type not yet supported!"
         else
-          raise "Unknown type #{options[:as].inspect} passed to Ecology.data(:as) for property #{property}!"
+          raise "Unknown type #{options[:as].inspect} passed to Ecology.property(:as) for property #{param}!"
         end
       end
 
       return value if options[:as] == Hash
-      raise "Couldn't convert JSON fields to #{options[:as].inspect} for property #{property}!"
+      raise "Couldn't convert JSON fields to #{options[:as].inspect} for property #{param}!"
     end
 
     PATH_SUBSTITUTIONS = {
