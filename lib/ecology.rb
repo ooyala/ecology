@@ -218,7 +218,7 @@ module Ecology
       components = param.split(":").compact.select {|s| s != ""}
 
       value = components.inject(@data) do |data_hash, component|
-        if data_hash && data_hash[component]
+        if data_hash
           data_hash[component]
         else
           nil
