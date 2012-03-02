@@ -51,7 +51,7 @@ module Ecology
 
         @ecology_path = ecology_path
         @data ||= {}
-        contents = merge_with_overrides(@ecology_path) if @ecology_path
+        merge_with_overrides(@ecology_path) if @ecology_path
 
         @application ||= File.basename($0)
         @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
@@ -62,7 +62,7 @@ module Ecology
       end
 
       # Do this outside the mutex to reduce the likelihood
-      # of deadlocks.
+      # of deadlocks.  This will run all of the on_initialize triggers.
       publish_event(:initialize) if should_publish_event
     end
 
