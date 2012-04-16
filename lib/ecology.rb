@@ -136,7 +136,7 @@ module Ecology
       else
         contents = File.read(file_path)
       end
-      file_data = MultiJson.decode(contents);
+      file_data = MultiJson.load(contents);
 
       return unless file_data
 
